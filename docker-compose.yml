@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  api:
+    build: .
+    image: limo-directory-api
+    container_name: limo-api
+    ports:
+      - "8000:8000"
+    env_file: .env
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 2
+    restart: unless-stopped
+    volumes:
+      - .:/app
+
+  scraper:
+    build: .
+    image: limo-directory-api
+    container_name: limo-scraper
+    env_file: .env
+    command: >
+      sh -c "playwright install chromium &&
+             python -m scraper.spiders.google_maps_spider --state TX &&
+             python -m scraper.spiders.company_spider --limit 50 &&
+             python -m scraper.processors.color_detector --limit 200 &&
+             python -m scraper.processors.event_tagger --limit 200"
+    profiles:
+      - scraper   # only run with: docker-compose --profile scraper up
+    volumes:
+      - .:/app

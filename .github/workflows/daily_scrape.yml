@@ -1,0 +1,89 @@
+name: Daily Limo Scrape
+
+on:
+  schedule:
+    # Every day at 2:00 AM UTC
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      state:
+        description: "Two-letter state code (leave blank for all)"
+        required: false
+        type: string
+      limit:
+        description: "Max companies to process per spider"
+        required: false
+        default: "200"
+        type: string
+
+jobs:
+  scrape:
+    name: Run Scraping Pipeline
+    runs-on: ubuntu-latest
+    timeout-minutes: 360  # 6h max
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium --with-deps
+
+      - name: Write .env from secrets
+        run: |
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}"           >> .env
+          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}"           >> .env
+          echo "GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}" >> .env
+
+      # ── Step 1: Discover companies via Google Maps ──────────────────────
+      - name: Discover companies (Google Maps spider)
+        run: |
+          if [ -n "${{ github.event.inputs.state }}" ]; then
+            python -m scraper.spiders.google_maps_spider \
+              --state "${{ github.event.inputs.state }}"
+          else
+            # Run 5 random states per daily run to spread load
+            STATES=(AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD \
+                    MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC \
+                    SD TN TX UT VT VA WA WV WI WY DC)
+            RANDOM_STATES=$(printf '%s\n' "${STATES[@]}" | shuf | head -5)
+            for STATE in $RANDOM_STATES; do
+              echo "▶ Scraping state: $STATE"
+              python -m scraper.spiders.google_maps_spider --state "$STATE"
+            done
+          fi
+
+      # ── Step 2: Deep-scrape company websites ───────────────────────────
+      - name: Deep-scrape company websites
+        run: |
+          python -m scraper.spiders.company_spider \
+            --limit "${{ github.event.inputs.limit || '200' }}"
+
+      # ── Step 3: Detect vehicle colors from images ──────────────────────
+      - name: Detect vehicle colors
+        run: |
+          python -m scraper.processors.color_detector --limit 500
+
+      # ── Step 4: Tag companies with event types ─────────────────────────
+      - name: Tag event types
+        run: |
+          python -m scraper.processors.event_tagger --limit 500
+
+      # ── Step 5: Notify Slack (optional) ───────────────────────────────
+      - name: Notify Slack
+        if: always() && env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          STATUS="${{ job.status }}"
+          curl -X POST "$SLACK_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{\"text\": \"🚗 Limo scrape run finished with status: *${STATUS}*\"}"
