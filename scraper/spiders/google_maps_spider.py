@@ -1,7 +1,3 @@
-﻿from __future__ import annotations
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 """
 scraper/spiders/google_maps_spider.py
 --------------------------------------
@@ -13,7 +9,11 @@ Run:
     python -m scraper.spiders.google_maps_spider --all-states
 """
 
+from __future__ import annotations
 
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 import argparse
 import logging
@@ -76,7 +76,7 @@ class GoogleMapsSpider:
             max_delay=settings.SCRAPER_DELAY_MAX,
         )
 
-    # â”€â”€ Discovery â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── Discovery ──────────────────────────────────────────────────────────
 
     def search_state(self, state_code: str, state_name: str) -> list[dict]:
         """Run all search queries for one state; deduplicate by place_id."""
@@ -94,7 +94,7 @@ class GoogleMapsSpider:
                     seen_place_ids.add(pid)
                     all_places.append(place)
 
-        logger.info("State %s â†’ %d unique places found", state_code, len(all_places))
+        logger.info("State %s → %d unique places found", state_code, len(all_places))
         return all_places
 
     def _paginated_text_search(self, query: str) -> Iterator[dict]:
@@ -129,7 +129,7 @@ class GoogleMapsSpider:
                 break
             page += 1
 
-    # â”€â”€ Enrichment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── Enrichment ─────────────────────────────────────────────────────────
 
     def fetch_place_details(self, place_id: str) -> dict:
         """Fetch full Place Details for a single place_id."""
@@ -145,7 +145,7 @@ class GoogleMapsSpider:
         resp.raise_for_status()
         return resp.json().get("result", {})
 
-    # â”€â”€ Transform â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── Transform ──────────────────────────────────────────────────────────
 
     @staticmethod
     def extract_state_from_components(components: list[dict]) -> str | None:
@@ -176,7 +176,7 @@ class GoogleMapsSpider:
             "last_scraped_at": "now()",
         }
 
-    # â”€â”€ Main Run â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── Main Run ───────────────────────────────────────────────────────────
 
     def run(self, states: list[tuple[str, str]]) -> None:
         for state_code, state_name in states:
@@ -233,7 +233,7 @@ class GoogleMapsSpider:
             )
 
 
-# â”€â”€ CLI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── CLI ───────────────────────────────────────────────────────────────────────
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Google Maps Limo Spider")
@@ -257,4 +257,3 @@ if __name__ == "__main__":
 
     spider = GoogleMapsSpider()
     spider.run(target_states)
-

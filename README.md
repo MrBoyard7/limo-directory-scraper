@@ -2,11 +2,16 @@
 
 > An automated data pipeline that scrapes, enriches, and categorizes every limo and party bus company in the USA — powering niche directories like *Red Limos*, *Wedding Party Buses*, or *Prom Limos*.
 
-![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.111-green?logo=fastapi)
-![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?logo=supabase)
-![Playwright](https://img.shields.io/badge/Playwright-Scraping-orange?logo=playwright)
-![License](https://img.shields.io/badge/license-MIT-lightgrey)
+[![CI](https://github.com/MrBoyard7/limo-directory-scraper/actions/workflows/ci.yml/badge.svg)](https://github.com/MrBoyard7/limo-directory-scraper/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/MrBoyard7/limo-directory-scraper/branch/main/graph/badge.svg)](https://codecov.io/gh/MrBoyard7/limo-directory-scraper)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
+[![Playwright](https://img.shields.io/badge/Playwright-Scraping-45ba4b?logo=playwright&logoColor=white)](https://playwright.dev/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
@@ -165,10 +170,27 @@ limo-directory-scraper/
 │   ├── migrations/001_initial_schema.sql
 │   └── seeds/directory_categories.sql
 │
-├── .github/workflows/daily_scrape.yml
+├── tests/
+│   ├── test_scraper/
+│   │   ├── test_color_detector.py
+│   │   ├── test_event_tagger.py
+│   │   └── test_rate_limiter.py
+│   └── test_api/
+│       ├── test_companies_endpoint.py
+│       ├── test_directories_endpoint.py
+│       └── test_vehicles_endpoint.py
+│
+├── .github/
+│   └── workflows/
+│       ├── ci.yml                    # Tests + Codecov on every push
+│       └── daily_scrape.yml          # Scheduled nightly scrape
+│
+├── .coveragerc
 ├── .env.example
-├── requirements.txt
+├── .gitignore
+├── LICENSE
 ├── pyproject.toml
+├── requirements.txt
 ├── Dockerfile
 └── docker-compose.yml
 ```
@@ -180,11 +202,12 @@ limo-directory-scraper/
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/limo-directory-scraper.git
+git clone https://github.com/MrBoyard7/limo-directory-scraper.git
 cd limo-directory-scraper
 
 python -m venv .venv
 .venv\Scripts\activate        # Windows
+# source .venv/bin/activate   # macOS/Linux
 pip install -r requirements.txt
 pip install -e .
 playwright install chromium
@@ -205,16 +228,9 @@ then run `supabase/seeds/directory_categories.sql` to load the 17 pre-built dire
 ### 4. Run the Scraper
 
 ```bash
-# Scrape a single state for testing
 python -m scraper.spiders.google_maps_spider --state TX
-
-# Deep-scrape company websites
 python -m scraper.spiders.company_spider --limit 50
-
-# Detect vehicle colors from images
 python -m scraper.processors.color_detector --limit 200
-
-# Tag companies with event types
 python -m scraper.processors.event_tagger --limit 200
 ```
 
@@ -273,8 +289,10 @@ Vehicle images are analyzed using `scikit-image` + `KMeans` clustering:
 ## 🧪 Running Tests
 
 ```bash
-pytest tests/ -v
+pytest tests/ -v --cov=scraper --cov=api --cov=config --cov-report=term-missing
 ```
+
+Coverage target: **85%+** (enforced in CI)
 
 ---
 
@@ -282,8 +300,8 @@ pytest tests/ -v
 
 The `.github/workflows/daily_scrape.yml` runs every night at 2 AM UTC:
 - Scrapes 5 random US states per day
-- Re-scrapes stale entries (>30 days old)
-- Detects colors on new images
+- Deep-scrapes company websites with Playwright
+- Detects colors on new vehicle images
 - Tags new companies with event types
 
 ---
@@ -296,6 +314,12 @@ docker-compose up -d
 
 ---
 
+## 👤 Author
+
+**Prince Boyard MBOUNGOU NGOMA** — [@MrBoyard7](https://github.com/MrBoyard7)
+
+---
+
 ## 📜 License
 
-MIT — free to use, modify, and distribute.
+MIT © 2026 [Prince Boyard MBOUNGOU NGOMA](https://github.com/MrBoyard7) — see [LICENSE](LICENSE) for details.

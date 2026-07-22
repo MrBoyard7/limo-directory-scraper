@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "limo-directory-scraper"
 version = "1.0.0"
-description = "Limo & party bus directory scraper"
+description = "Automated scraper and API for US limo & party bus directories"
 requires-python = ">=3.11"
 
 [tool.setuptools.packages.find]
@@ -15,3 +15,9 @@ include = ["scraper*", "api*", "config*"]
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.black]
+line-length = 100

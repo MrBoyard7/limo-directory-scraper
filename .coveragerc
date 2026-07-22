@@ -1,0 +1,21 @@
+[run]
+source = scraper, api, config
+omit =
+    */tests/*
+    */__init__.py
+    */.venv/*
+    */venv/*
+    */migrations/*
+    */seeds/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    pass
+    ...
+precision = 2
+show_missing = True
+fail_under = 85

@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Tests & Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip setuptools
+          pip install -r requirements.txt
+          pip install pytest-asyncio pytest-cov
+          pip install -e .
+
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ -v \
+            --cov=scraper \
+            --cov=api \
+            --cov=config \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            --cov-fail-under=85
+        env:
+          SUPABASE_URL: ""
+          SUPABASE_KEY: ""
+          GOOGLE_MAPS_API_KEY: ""
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          flags: unittests
+          name: limo-directory-scraper
+          fail_ci_if_error: false
+
+  lint:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install linters
+        run: pip install ruff black
+
+      - name: Run Ruff (linter)
+        run: ruff check . --ignore E501
+
+      - name: Run Black (formatter check)
+        run: black --check . --line-length 100
