@@ -67,7 +67,7 @@ jobs:
         run: pip install ruff black
 
       - name: Run Ruff (linter)
-        run: ruff check . --ignore E501,I001,F401,E402
+        run: ruff check . --select E,W --ignore E501,E402
 
       - name: Run Black (formatter check)
         run: black --check . --line-length 100
