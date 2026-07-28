@@ -71,5 +71,3 @@ jobs:
 
       - name: Run Black (formatter check)
         run: black --check . --line-length 100
-
-Add-Content .github\workflows\ci.yml ""
