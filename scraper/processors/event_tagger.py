@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 import argparse
@@ -29,50 +30,113 @@ settings = get_settings()
 
 EVENT_KEYWORD_MAP: dict[str, list[str]] = {
     "wedding": [
-        "wedding", "bride", "bridal", "groom", "ceremony", "reception",
-        "vow", "honeymoon", "just married", "nuptial",
+        "wedding",
+        "bride",
+        "bridal",
+        "groom",
+        "ceremony",
+        "reception",
+        "vow",
+        "honeymoon",
+        "just married",
+        "nuptial",
     ],
     "prom": [
-        "prom", "homecoming", "high school dance", "prom night",
-        "prom transportation", "prom limo",
+        "prom",
+        "homecoming",
+        "high school dance",
+        "prom night",
+        "prom transportation",
+        "prom limo",
     ],
     "birthday": [
-        "birthday", "sweet 16", "sweet sixteen", "quinceañera", "quinceanera",
-        "milestone birthday", "birthday party",
+        "birthday",
+        "sweet 16",
+        "sweet sixteen",
+        "quinceañera",
+        "quinceanera",
+        "milestone birthday",
+        "birthday party",
     ],
     "bachelorette": [
-        "bachelorette", "bachelorette party", "girls night out",
-        "ladies night", "hen party", "last night of freedom",
+        "bachelorette",
+        "bachelorette party",
+        "girls night out",
+        "ladies night",
+        "hen party",
+        "last night of freedom",
     ],
     "bachelor": [
-        "bachelor", "bachelor party", "stag night", "stag party", "guys night",
+        "bachelor",
+        "bachelor party",
+        "stag night",
+        "stag party",
+        "guys night",
     ],
     "corporate": [
-        "corporate", "business travel", "executive", "roadshow", "conference",
-        "client transportation", "vip transfer", "business event",
+        "corporate",
+        "business travel",
+        "executive",
+        "roadshow",
+        "conference",
+        "client transportation",
+        "vip transfer",
+        "business event",
     ],
     "airport": [
-        "airport", "airport transfer", "airport pickup", "airport shuttle",
-        "airport transportation", "airport limo", "flight",
+        "airport",
+        "airport transfer",
+        "airport pickup",
+        "airport shuttle",
+        "airport transportation",
+        "airport limo",
+        "flight",
     ],
     "concert": [
-        "concert", "show", "music festival", "sports event", "game day",
-        "stadium", "theater", "nightclub", "club crawl", "bar hop",
+        "concert",
+        "show",
+        "music festival",
+        "sports event",
+        "game day",
+        "stadium",
+        "theater",
+        "nightclub",
+        "club crawl",
+        "bar hop",
     ],
     "quinceañera": [
-        "quinceañera", "quinceanera", "quinces", "sweet 15", "fifteenth birthday",
+        "quinceañera",
+        "quinceanera",
+        "quinces",
+        "sweet 15",
+        "fifteenth birthday",
     ],
     "wine_tour": [
-        "wine tour", "winery tour", "vineyard", "wine country", "wine tasting",
+        "wine tour",
+        "winery tour",
+        "vineyard",
+        "wine country",
+        "wine tasting",
     ],
     "brewery_tour": [
-        "brewery tour", "brewery hop", "bar crawl", "pub crawl", "distillery",
+        "brewery tour",
+        "brewery hop",
+        "bar crawl",
+        "pub crawl",
+        "distillery",
     ],
     "sightseeing": [
-        "sightseeing", "city tour", "guided tour", "tourist", "landmark tour",
+        "sightseeing",
+        "city tour",
+        "guided tour",
+        "tourist",
+        "landmark tour",
     ],
     "funeral": [
-        "funeral", "memorial service", "graveside", "bereavement",
+        "funeral",
+        "memorial service",
+        "graveside",
+        "bereavement",
     ],
 }
 
@@ -81,10 +145,12 @@ def tag_company(company: dict) -> list[str]:
     """
     Given a company dict (with name + description), return matching event slugs.
     """
-    text = " ".join([
-        company.get("name") or "",
-        company.get("description") or "",
-    ]).lower()
+    text = " ".join(
+        [
+            company.get("name") or "",
+            company.get("description") or "",
+        ]
+    ).lower()
 
     matched: list[str] = []
     for event_slug, keywords in EVENT_KEYWORD_MAP.items():
@@ -95,6 +161,7 @@ def tag_company(company: dict) -> list[str]:
 
 
 # ── Processor ──────────────────────────────────────────────────────────────────
+
 
 class EventTagger:
     def __init__(self) -> None:
@@ -107,11 +174,7 @@ class EventTagger:
         """
         # Use a simple approach: fetch all companies and exclude those
         # that already appear in company_event_tags
-        tagged_result = (
-            self.supabase.table("company_event_tags")
-            .select("company_id")
-            .execute()
-        )
+        tagged_result = self.supabase.table("company_event_tags").select("company_id").execute()
         tagged_ids = {row["company_id"] for row in (tagged_result.data or [])}
 
         all_result = (

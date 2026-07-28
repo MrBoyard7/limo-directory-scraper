@@ -10,8 +10,8 @@ from __future__ import annotations
 from typing import Annotated
 from fastapi import APIRouter, HTTPException, Query
 
-from scraper.utils.supabase_client import get_client
 from config.settings import get_settings
+from scraper.utils.supabase_client import get_client
 
 router = APIRouter()
 settings = get_settings()
@@ -22,14 +22,16 @@ def list_companies(
     state: Annotated[str | None, Query(description="Two-letter state code, e.g. TX")] = None,
     city: Annotated[str | None, Query(description="City name")] = None,
     vehicle_color: Annotated[str | None, Query(description="Primary vehicle color")] = None,
-    vehicle_type: Annotated[str | None, Query(description="Vehicle type slug, e.g. party_bus")] = None,
+    vehicle_type: Annotated[
+        str | None, Query(description="Vehicle type slug, e.g. party_bus")
+    ] = None,
     event_type: Annotated[str | None, Query(description="Event type slug, e.g. wedding")] = None,
     min_rating: Annotated[float | None, Query(description="Minimum Google rating (0–5)")] = None,
     page: Annotated[int, Query(ge=1)] = 1,
     limit: Annotated[int, Query(ge=1, le=100)] = settings.API_DEFAULT_PAGE_SIZE,
 ):
-    """
-    List companies with optional filters.
+    """List companies with optional filters.
+
     Filtered via the `v_companies_enriched` view.
     """
     db = get_client()
@@ -56,8 +58,8 @@ def list_companies(
     return {
         "page": page,
         "limit": limit,
-        "count": len(result.data),
-        "data": result.data,
+        "count": len(result.data or []),
+        "data": result.data or [],
     }
 
 
@@ -66,17 +68,12 @@ def get_company(company_id: str):
     """Full company detail: company info + vehicles + vehicle images + event tags."""
     db = get_client()
 
-    company_result = (
-        db.table("companies")
-        .select("*")
-        .eq("id", company_id)
-        .limit(1)
-        .execute()
-    )
+    company_result = db.table("companies").select("*").eq("id", company_id).limit(1).execute()
     if not company_result.data:
         raise HTTPException(status_code=404, detail="Company not found")
 
-    company = company_result.data[0]
+    # Shallow copy to detach the dictionary from the Supabase mock
+    company = dict(company_result.data[0])
 
     # Vehicles
     vehicles_result = (
@@ -85,7 +82,7 @@ def get_company(company_id: str):
         .eq("company_id", company_id)
         .execute()
     )
-    company["vehicles"] = vehicles_result.data
+    company["vehicles"] = vehicles_result.data or []
 
     # Images
     images_result = (
@@ -95,7 +92,7 @@ def get_company(company_id: str):
         .limit(50)
         .execute()
     )
-    company["images"] = images_result.data
+    company["images"] = images_result.data or []
 
     # Event tags
     tags_result = (
@@ -104,14 +101,19 @@ def get_company(company_id: str):
         .eq("company_id", company_id)
         .execute()
     )
-    company["event_tags"] = [
-        {
-            "slug": row["event_types"]["slug"],
-            "label": row["event_types"]["label"],
-            "confidence": row["confidence"],
-            "source": row["source"],
-        }
-        for row in tags_result.data
-    ]
+
+    tags_list = []
+    for row in tags_result.data or []:
+        event_type = row.get("event_types") if isinstance(row.get("event_types"), dict) else {}
+        tags_list.append(
+            {
+                "slug": event_type.get("slug"),
+                "label": event_type.get("label"),
+                "confidence": row.get("confidence"),
+                "source": row.get("source"),
+            }
+        )
+
+    company["event_tags"] = tags_list
 
     return company

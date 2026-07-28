@@ -14,13 +14,13 @@ from __future__ import annotations
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 import argparse
 import io
 import json
 import logging
-import math
 from typing import NamedTuple
 
 import httpx
@@ -38,32 +38,33 @@ settings = get_settings()
 
 # ── Color name mapping ─────────────────────────────────────────────────────────
 
+
 class ColorRange(NamedTuple):
     name: str
-    h_min: float   # HSV hue min (0–360)
+    h_min: float  # HSV hue min (0–360)
     h_max: float
-    s_min: float   # saturation min (0–1)
-    v_min: float   # value/brightness min (0–1)
+    s_min: float  # saturation min (0–1)
+    v_min: float  # value/brightness min (0–1)
 
 
 # Ordered from most specific to most general
 COLOR_RANGES: list[ColorRange] = [
-    ColorRange("red",    0,   15, 0.40, 0.30),
-    ColorRange("red",  345,  360, 0.40, 0.30),
-    ColorRange("pink",  300, 345, 0.25, 0.50),
-    ColorRange("orange", 15,  40, 0.45, 0.40),
-    ColorRange("yellow", 40,  65, 0.40, 0.60),
-    ColorRange("green",  65, 150, 0.25, 0.20),
-    ColorRange("blue",  150, 260, 0.25, 0.20),
+    ColorRange("red", 0, 15, 0.40, 0.30),
+    ColorRange("red", 345, 360, 0.40, 0.30),
+    ColorRange("pink", 300, 345, 0.25, 0.50),
+    ColorRange("orange", 15, 40, 0.45, 0.40),
+    ColorRange("yellow", 40, 65, 0.40, 0.60),
+    ColorRange("green", 65, 150, 0.25, 0.20),
+    ColorRange("blue", 150, 260, 0.25, 0.20),
     ColorRange("purple", 260, 300, 0.20, 0.20),
-    ColorRange("gold",   30,  50, 0.50, 0.40),
+    ColorRange("gold", 30, 50, 0.50, 0.40),
 ]
 
 NEUTRAL_MAP = [
-    ("white",  {"v_min": 0.85, "s_max": 0.12}),
+    ("white", {"v_min": 0.85, "s_max": 0.12}),
     ("silver", {"v_min": 0.55, "s_max": 0.12}),
-    ("black",  {"v_max": 0.25}),
-    ("gray",   {"s_max": 0.15}),
+    ("black", {"v_max": 0.25}),
+    ("gray", {"s_max": 0.15}),
     ("champagne", {"v_min": 0.75, "s_min": 0.08, "s_max": 0.25, "h_min": 25, "h_max": 55}),
 ]
 
@@ -105,7 +106,9 @@ def classify_color(r: int, g: int, b: int) -> str:
 
     # Check hue-based colors
     for cr in COLOR_RANGES:
-        in_hue = (cr.h_min <= h <= cr.h_max) or (cr.h_min > cr.h_max and (h >= cr.h_min or h <= cr.h_max))
+        in_hue = (cr.h_min <= h <= cr.h_max) or (
+            cr.h_min > cr.h_max and (h >= cr.h_min or h <= cr.h_max)
+        )
         if in_hue and s >= cr.s_min and v >= cr.v_min:
             return cr.name
 
@@ -113,6 +116,7 @@ def classify_color(r: int, g: int, b: int) -> str:
 
 
 # ── Image processing ───────────────────────────────────────────────────────────
+
 
 def detect_colors_from_image(image_bytes: bytes) -> list[dict]:
     """
@@ -159,6 +163,7 @@ def detect_colors_from_image(image_bytes: bytes) -> list[dict]:
 
 # ── Processor ──────────────────────────────────────────────────────────────────
 
+
 class ColorDetector:
     """
     Fetches unprocessed vehicle images from Supabase,
@@ -194,9 +199,9 @@ class ColorDetector:
             return None
 
     def update_image_colors(self, image_id: str, detected: list[dict]) -> None:
-        self.supabase.table("vehicle_images").update(
-            {"detected_colors": json.dumps(detected)}
-        ).eq("id", image_id).execute()
+        self.supabase.table("vehicle_images").update({"detected_colors": json.dumps(detected)}).eq(
+            "id", image_id
+        ).execute()
 
     def update_vehicle_primary_color(self, vehicle_id: str | None, color: str) -> None:
         if not vehicle_id:
@@ -210,9 +215,9 @@ class ColorDetector:
             .execute()
         )
         if existing.data and not existing.data[0].get("primary_color"):
-            self.supabase.table("vehicles").update(
-                {"primary_color": color}
-            ).eq("id", vehicle_id).execute()
+            self.supabase.table("vehicles").update({"primary_color": color}).eq(
+                "id", vehicle_id
+            ).execute()
 
     def run(self, limit: int = 1000) -> None:
         images = self.fetch_unprocessed(limit)
@@ -240,7 +245,9 @@ class ColorDetector:
 
         logger.info(
             "Color detection done: %d processed, %d skipped, %d failed",
-            processed, skipped, failed,
+            processed,
+            skipped,
+            failed,
         )
 
 

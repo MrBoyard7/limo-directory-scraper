@@ -4,7 +4,6 @@ tests/test_scraper/test_event_tagger.py
 Tests for the event tagging processor.
 """
 
-import pytest
 from scraper.processors.event_tagger import tag_company, EVENT_KEYWORD_MAP
 
 
@@ -30,7 +29,10 @@ class TestTagCompany:
         assert "bachelor" in tags
 
     def test_corporate_detected(self):
-        company = {"name": "Executive Transport", "description": "Corporate events and business travel."}
+        company = {
+            "name": "Executive Transport",
+            "description": "Corporate events and business travel.",
+        }
         tags = tag_company(company)
         assert "corporate" in tags
 

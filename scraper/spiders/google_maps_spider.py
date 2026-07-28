@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 import argparse
@@ -36,19 +37,57 @@ settings = get_settings()
 
 # All 50 US states + DC
 US_STATES: list[tuple[str, str]] = [
-    ("AL", "Alabama"), ("AK", "Alaska"), ("AZ", "Arizona"), ("AR", "Arkansas"),
-    ("CA", "California"), ("CO", "Colorado"), ("CT", "Connecticut"), ("DE", "Delaware"),
-    ("FL", "Florida"), ("GA", "Georgia"), ("HI", "Hawaii"), ("ID", "Idaho"),
-    ("IL", "Illinois"), ("IN", "Indiana"), ("IA", "Iowa"), ("KS", "Kansas"),
-    ("KY", "Kentucky"), ("LA", "Louisiana"), ("ME", "Maine"), ("MD", "Maryland"),
-    ("MA", "Massachusetts"), ("MI", "Michigan"), ("MN", "Minnesota"), ("MS", "Mississippi"),
-    ("MO", "Missouri"), ("MT", "Montana"), ("NE", "Nebraska"), ("NV", "Nevada"),
-    ("NH", "New Hampshire"), ("NJ", "New Jersey"), ("NM", "New Mexico"), ("NY", "New York"),
-    ("NC", "North Carolina"), ("ND", "North Dakota"), ("OH", "Ohio"), ("OK", "Oklahoma"),
-    ("OR", "Oregon"), ("PA", "Pennsylvania"), ("RI", "Rhode Island"), ("SC", "South Carolina"),
-    ("SD", "South Dakota"), ("TN", "Tennessee"), ("TX", "Texas"), ("UT", "Utah"),
-    ("VT", "Vermont"), ("VA", "Virginia"), ("WA", "Washington"), ("WV", "West Virginia"),
-    ("WI", "Wisconsin"), ("WY", "Wyoming"), ("DC", "Washington DC"),
+    ("AL", "Alabama"),
+    ("AK", "Alaska"),
+    ("AZ", "Arizona"),
+    ("AR", "Arkansas"),
+    ("CA", "California"),
+    ("CO", "Colorado"),
+    ("CT", "Connecticut"),
+    ("DE", "Delaware"),
+    ("FL", "Florida"),
+    ("GA", "Georgia"),
+    ("HI", "Hawaii"),
+    ("ID", "Idaho"),
+    ("IL", "Illinois"),
+    ("IN", "Indiana"),
+    ("IA", "Iowa"),
+    ("KS", "Kansas"),
+    ("KY", "Kentucky"),
+    ("LA", "Louisiana"),
+    ("ME", "Maine"),
+    ("MD", "Maryland"),
+    ("MA", "Massachusetts"),
+    ("MI", "Michigan"),
+    ("MN", "Minnesota"),
+    ("MS", "Mississippi"),
+    ("MO", "Missouri"),
+    ("MT", "Montana"),
+    ("NE", "Nebraska"),
+    ("NV", "Nevada"),
+    ("NH", "New Hampshire"),
+    ("NJ", "New Jersey"),
+    ("NM", "New Mexico"),
+    ("NY", "New York"),
+    ("NC", "North Carolina"),
+    ("ND", "North Dakota"),
+    ("OH", "Ohio"),
+    ("OK", "Oklahoma"),
+    ("OR", "Oregon"),
+    ("PA", "Pennsylvania"),
+    ("RI", "Rhode Island"),
+    ("SC", "South Carolina"),
+    ("SD", "South Dakota"),
+    ("TN", "Tennessee"),
+    ("TX", "Texas"),
+    ("UT", "Utah"),
+    ("VT", "Vermont"),
+    ("VA", "Virginia"),
+    ("WA", "Washington"),
+    ("WV", "West Virginia"),
+    ("WI", "Wisconsin"),
+    ("WY", "Wyoming"),
+    ("DC", "Washington DC"),
 ]
 
 SEARCH_QUERIES = [
@@ -134,12 +173,20 @@ class GoogleMapsSpider:
     def fetch_place_details(self, place_id: str) -> dict:
         """Fetch full Place Details for a single place_id."""
         self.limiter.wait_sync()
-        fields = ",".join([
-            "name", "formatted_address", "formatted_phone_number",
-            "website", "rating", "user_ratings_total",
-            "opening_hours", "photos", "editorial_summary",
-            "address_components",
-        ])
+        fields = ",".join(
+            [
+                "name",
+                "formatted_address",
+                "formatted_phone_number",
+                "website",
+                "rating",
+                "user_ratings_total",
+                "opening_hours",
+                "photos",
+                "editorial_summary",
+                "address_components",
+            ]
+        )
         params = {"place_id": place_id, "fields": fields, "key": self.api_key}
         resp = self.client.get(PLACES_DETAILS_URL, params=params)
         resp.raise_for_status()
@@ -218,22 +265,30 @@ class GoogleMapsSpider:
                 logger.error(msg)
                 errors.append(msg)
                 finish_scrape_log(
-                    log_id, status="failed", companies_found=found,
-                    companies_new=new, companies_updated=updated, errors=errors
+                    log_id,
+                    status="failed",
+                    companies_found=found,
+                    companies_new=new,
+                    companies_updated=updated,
+                    errors=errors,
                 )
                 continue
 
             finish_scrape_log(
-                log_id, status="done", companies_found=found,
-                companies_new=new, companies_updated=updated, errors=errors
+                log_id,
+                status="done",
+                companies_found=found,
+                companies_new=new,
+                companies_updated=updated,
+                errors=errors,
             )
             logger.info(
-                "State %s done: %d found, %d new, %d updated",
-                state_code, found, new, updated
+                "State %s done: %d found, %d new, %d updated", state_code, found, new, updated
             )
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Google Maps Limo Spider")

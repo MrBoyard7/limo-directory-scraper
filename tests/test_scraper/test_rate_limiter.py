@@ -30,9 +30,9 @@ class TestRateLimiter:
 
     def test_wait_sync_respects_delay(self):
         limiter = RateLimiter(min_delay=0.05, max_delay=0.1)
-        limiter.wait_sync()   # first call — sets _last_call
+        limiter.wait_sync()  # first call — sets _last_call
         start = time.monotonic()
-        limiter.wait_sync()   # second call — should wait
+        limiter.wait_sync()  # second call — should wait
         elapsed = time.monotonic() - start
         assert elapsed >= 0.04  # allow tiny margin
 
@@ -63,7 +63,7 @@ class TestRateLimiter:
     @pytest.mark.asyncio
     async def test_async_wait(self):
         limiter = RateLimiter(min_delay=0.01, max_delay=0.02)
-        await limiter.wait()   # should not raise
+        await limiter.wait()  # should not raise
 
     @pytest.mark.asyncio
     async def test_async_decorator(self):

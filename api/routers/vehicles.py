@@ -31,14 +31,11 @@ def list_vehicles(
     """
     db = get_client()
 
-    query = (
-        db.table("vehicles")
-        .select(
-            "id, name, description, capacity, primary_color, secondary_color, "
-            "amenities, price_per_hour, price_per_day, "
-            "vehicle_types(slug, label), "
-            "companies(id, name, city, state, phone, url, rating)"
-        )
+    query = db.table("vehicles").select(
+        "id, name, description, capacity, primary_color, secondary_color, "
+        "amenities, price_per_hour, price_per_day, "
+        "vehicle_types(slug, label), "
+        "companies(id, name, city, state, phone, url, rating)"
     )
 
     if color:

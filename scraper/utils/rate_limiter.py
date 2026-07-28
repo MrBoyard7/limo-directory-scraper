@@ -65,7 +65,9 @@ def with_rate_limit(min_delay: float = 1.5, max_delay: float = 3.5):
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             limiter.wait_sync()
             return fn(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -84,5 +86,7 @@ def async_with_rate_limit(min_delay: float = 1.5, max_delay: float = 3.5):
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             await limiter.wait()
             return await fn(*args, **kwargs)
+
         return wrapper
+
     return decorator

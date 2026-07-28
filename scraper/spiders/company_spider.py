@@ -13,13 +13,14 @@ from __future__ import annotations
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 import argparse
 import asyncio
 import logging
 import re
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin
 
 from playwright.async_api import async_playwright, Page, Browser
 
@@ -32,41 +33,63 @@ settings = get_settings()
 # ── Keyword lists ─────────────────────────────────────────────────────────────
 
 VEHICLE_TYPE_KEYWORDS: dict[str, list[str]] = {
-    "stretch_limo":  ["stretch limo", "stretch limousine", "classic limo"],
-    "suv_limo":      ["suv limo", "suv limousine", "navigator limo", "escalade limo"],
-    "hummer_limo":   ["hummer limo", "hummer limousine"],
-    "party_bus":     ["party bus", "party coach"],
-    "mini_bus":      ["mini bus", "minibus", "mini coach"],
-    "sprinter_van":  ["sprinter van", "sprinter limo", "mercedes sprinter"],
-    "sedan":         ["luxury sedan", "town car", "lincoln town car", "cadillac sedan"],
-    "vintage":       ["vintage", "classic car", "antique limo", "rolls royce"],
-    "trolley":       ["trolley"],
+    "stretch_limo": ["stretch limo", "stretch limousine", "classic limo"],
+    "suv_limo": ["suv limo", "suv limousine", "navigator limo", "escalade limo"],
+    "hummer_limo": ["hummer limo", "hummer limousine"],
+    "party_bus": ["party bus", "party coach"],
+    "mini_bus": ["mini bus", "minibus", "mini coach"],
+    "sprinter_van": ["sprinter van", "sprinter limo", "mercedes sprinter"],
+    "sedan": ["luxury sedan", "town car", "lincoln town car", "cadillac sedan"],
+    "vintage": ["vintage", "classic car", "antique limo", "rolls royce"],
+    "trolley": ["trolley"],
     "double_decker": ["double decker", "double-decker"],
 }
 
 COLOR_KEYWORDS: dict[str, list[str]] = {
-    "black":   ["black"],
-    "white":   ["white"],
-    "red":     ["red"],
-    "silver":  ["silver", "champagne", "platinum"],
-    "gold":    ["gold", "golden"],
-    "pink":    ["pink", "hot pink"],
-    "blue":    ["blue", "cobalt", "navy"],
-    "purple":  ["purple", "violet", "lavender"],
-    "green":   ["green", "emerald"],
-    "yellow":  ["yellow", "canary"],
+    "black": ["black"],
+    "white": ["white"],
+    "red": ["red"],
+    "silver": ["silver", "champagne", "platinum"],
+    "gold": ["gold", "golden"],
+    "pink": ["pink", "hot pink"],
+    "blue": ["blue", "cobalt", "navy"],
+    "purple": ["purple", "violet", "lavender"],
+    "green": ["green", "emerald"],
+    "yellow": ["yellow", "canary"],
 }
 
 AMENITY_KEYWORDS = [
-    "bar", "mini bar", "wet bar", "led lights", "fiber optic", "tv", "television",
-    "dvd", "bluetooth", "wifi", "wi-fi", "karaoke", "dance floor", "stripper pole",
-    "laser lights", "fog machine", "leather seats", "leather interior",
-    "privacy partition", "sunroof", "moon roof", "ice chest", "cooler",
-    "surround sound", "custom sound system",
+    "bar",
+    "mini bar",
+    "wet bar",
+    "led lights",
+    "fiber optic",
+    "tv",
+    "television",
+    "dvd",
+    "bluetooth",
+    "wifi",
+    "wi-fi",
+    "karaoke",
+    "dance floor",
+    "stripper pole",
+    "laser lights",
+    "fog machine",
+    "leather seats",
+    "leather interior",
+    "privacy partition",
+    "sunroof",
+    "moon roof",
+    "ice chest",
+    "cooler",
+    "surround sound",
+    "custom sound system",
 ]
 
 EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}")
-CAPACITY_PATTERN = re.compile(r"(\d{1,3})\s*(?:-\s*\d{1,3})?\s*(?:passenger|person|people|pax)", re.I)
+CAPACITY_PATTERN = re.compile(
+    r"(\d{1,3})\s*(?:-\s*\d{1,3})?\s*(?:passenger|person|people|pax)", re.I
+)
 
 
 class CompanySpider:
@@ -128,8 +151,10 @@ class CompanySpider:
     async def scrape_page(self, page: Page, url: str) -> dict:
         """Scrape a single URL and return extracted data."""
         try:
-            await page.goto(url, wait_until="domcontentloaded", timeout=settings.SCRAPER_TIMEOUT * 1000)
-            await page.wait_for_timeout(1500)   # let JS render
+            await page.goto(
+                url, wait_until="domcontentloaded", timeout=settings.SCRAPER_TIMEOUT * 1000
+            )
+            await page.wait_for_timeout(1500)  # let JS render
         except Exception as exc:
             logger.warning("Failed to load %s: %s", url, exc)
             return {}
@@ -138,13 +163,13 @@ class CompanySpider:
         image_urls = await self.extract_image_urls(page, url)
 
         return {
-            "emails":       self.extract_emails(text),
+            "emails": self.extract_emails(text),
             "vehicle_types": self.detect_vehicle_types(text),
-            "colors":       self.detect_colors(text),
-            "amenities":    self.detect_amenities(text),
-            "capacity":     self.detect_capacity(text),
-            "image_urls":   image_urls,
-            "raw_text":     text[:5000],  # store snippet for debugging
+            "colors": self.detect_colors(text),
+            "amenities": self.detect_amenities(text),
+            "capacity": self.detect_capacity(text),
+            "image_urls": image_urls,
+            "raw_text": text[:5000],  # store snippet for debugging
         }
 
     # ── Main scrape loop ───────────────────────────────────────────────────
@@ -186,7 +211,9 @@ class CompanySpider:
 
                 # Update company with email
                 if data["emails"]:
-                    upsert_company({"url": url, "email": data["emails"][0], "last_scraped_at": "now()"})
+                    upsert_company(
+                        {"url": url, "email": data["emails"][0], "last_scraped_at": "now()"}
+                    )
 
                 # Create a vehicle row per detected type
                 for vtype in data["vehicle_types"] or ["stretch_limo"]:
@@ -230,6 +257,7 @@ class CompanySpider:
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Company Website Spider")

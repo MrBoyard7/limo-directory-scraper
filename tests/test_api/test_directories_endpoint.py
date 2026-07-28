@@ -4,7 +4,6 @@ tests/test_api/test_directories_endpoint.py
 Tests for GET /directories and GET /directories/{slug}.
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 

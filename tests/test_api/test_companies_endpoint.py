@@ -6,7 +6,6 @@ Uses FastAPI's TestClient — no live Supabase connection needed
 when the supabase_client is mocked.
 """
 
-import pytest
 from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
 

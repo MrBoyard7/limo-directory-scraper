@@ -27,15 +27,15 @@ app = FastAPI(
 # ── CORS ──────────────────────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],       # tighten in production
+    allow_origins=["*"],  # tighten in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # ── Routers ───────────────────────────────────────────────────────────────────
-app.include_router(companies.router,   prefix="/companies",   tags=["Companies"])
-app.include_router(vehicles.router,    prefix="/vehicles",    tags=["Vehicles"])
+app.include_router(companies.router, prefix="/companies", tags=["Companies"])
+app.include_router(vehicles.router, prefix="/vehicles", tags=["Vehicles"])
 app.include_router(directories.router, prefix="/directories", tags=["Directories"])
 
 
@@ -48,14 +48,15 @@ def root():
 def stats():
     """High-level scraping statistics."""
     from scraper.utils.supabase_client import get_client
+
     db = get_client()
 
     companies_count = db.table("companies").select("id", count="exact").execute().count
-    vehicles_count  = db.table("vehicles").select("id", count="exact").execute().count
-    images_count    = db.table("vehicle_images").select("id", count="exact").execute().count
+    vehicles_count = db.table("vehicles").select("id", count="exact").execute().count
+    images_count = db.table("vehicle_images").select("id", count="exact").execute().count
 
     return {
         "companies_total": companies_count,
-        "vehicles_total":  vehicles_count,
-        "images_total":    images_count,
+        "vehicles_total": vehicles_count,
+        "images_total": images_count,
     }

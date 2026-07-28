@@ -4,7 +4,6 @@ tests/test_api/test_vehicles_endpoint.py
 Tests for GET /vehicles and the API root endpoints.
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 

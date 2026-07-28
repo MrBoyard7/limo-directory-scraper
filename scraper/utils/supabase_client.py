@@ -30,17 +30,14 @@ def get_client() -> Client:
 
 # ── Companies ─────────────────────────────────────────────────────────────────
 
+
 def upsert_company(data: dict[str, Any]) -> dict[str, Any]:
     """
     Insert or update a company by URL (unique key).
     Returns the full row including the assigned UUID.
     """
     client = get_client()
-    result = (
-        client.table("companies")
-        .upsert(data, on_conflict="url")
-        .execute()
-    )
+    result = client.table("companies").upsert(data, on_conflict="url").execute()
     row = result.data[0]
     logger.info("Upserted company: %s → id=%s", data.get("name"), row["id"])
     return row
@@ -48,17 +45,12 @@ def upsert_company(data: dict[str, Any]) -> dict[str, Any]:
 
 def get_company_by_url(url: str) -> dict[str, Any] | None:
     client = get_client()
-    result = (
-        client.table("companies")
-        .select("*")
-        .eq("url", url)
-        .limit(1)
-        .execute()
-    )
+    result = client.table("companies").select("*").eq("url", url).limit(1).execute()
     return result.data[0] if result.data else None
 
 
 # ── Vehicles ──────────────────────────────────────────────────────────────────
+
 
 def insert_vehicle(data: dict[str, Any]) -> dict[str, Any]:
     client = get_client()
@@ -68,15 +60,12 @@ def insert_vehicle(data: dict[str, Any]) -> dict[str, Any]:
 
 def upsert_vehicle_image(data: dict[str, Any]) -> dict[str, Any]:
     client = get_client()
-    result = (
-        client.table("vehicle_images")
-        .upsert(data, on_conflict="original_url")
-        .execute()
-    )
+    result = client.table("vehicle_images").upsert(data, on_conflict="original_url").execute()
     return result.data[0]
 
 
 # ── Event Tags ────────────────────────────────────────────────────────────────
+
 
 def tag_company_events(company_id: str, event_slugs: list[str], source: str = "ml") -> None:
     """
@@ -87,12 +76,7 @@ def tag_company_events(company_id: str, event_slugs: list[str], source: str = "m
         return
 
     # Resolve slugs → IDs
-    result = (
-        client.table("event_types")
-        .select("id, slug")
-        .in_("slug", event_slugs)
-        .execute()
-    )
+    result = client.table("event_types").select("id, slug").in_("slug", event_slugs).execute()
     for row in result.data:
         client.table("company_event_tags").upsert(
             {"company_id": company_id, "event_type_id": row["id"], "source": source},
@@ -103,6 +87,7 @@ def tag_company_events(company_id: str, event_slugs: list[str], source: str = "m
 
 
 # ── Scrape Logs ───────────────────────────────────────────────────────────────
+
 
 def start_scrape_log(spider_name: str, state: str | None = None) -> int:
     client = get_client()
@@ -137,6 +122,7 @@ def finish_scrape_log(
 
 
 # ── Image Storage ─────────────────────────────────────────────────────────────
+
 
 def upload_image_to_storage(image_bytes: bytes, path: str, content_type: str = "image/jpeg") -> str:
     """
